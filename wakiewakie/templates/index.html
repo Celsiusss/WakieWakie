@@ -1,0 +1,31 @@
+{% extends "_layout.html" %}
+{% block content %}
+<table>
+    <tr>
+        <th>Name</th>
+        <th>7 day average time</th>
+    </tr>
+    {% for person in people %}
+    <tr>
+        <td>{{ person.name }}</td>
+        <td>{{ person.average_time }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Latest Checkins</h2>
+<table class="table-checkins">
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Time</th>
+    </tr>
+    {% for checkin in checkins %}
+    <tr>
+        <td>{{ checkin["name"] }}</td>
+        <td>{{ checkin["type"] }}</td>
+        <td>{{ checkin["time"] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

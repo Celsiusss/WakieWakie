@@ -1,0 +1,16 @@
+body {
+    font-family: sans-serif;
+}
+
+.layout {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.table-checkins {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-checkins tr:first-child {
+    border-bottom: 1px solid black;
+}
