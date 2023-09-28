@@ -16,11 +16,47 @@ $ pip install -r requirements.txt
 
 Setup a PostreSQL database to be used locally (recommend using docker).
 
-Set the correct environment variables using a `.env` file in the root folder of this project.
+# Setting Up PostgreSQL with Docker
 
-**Remember to create your database first!**
+This guide provides steps to set up a PostgreSQL database using Docker for the project.
 
-Run `seed.sql` on your database.
+## Steps
+
+### 1. **Pull the PostgreSQL Docker Image:**
+
+   Open your terminal and run the following command to pull the latest PostgreSQL Docker image:
+
+```sh
+    docker pull postgres
+```
+
+### 2. Run a PostgresSQL container 
+
+    If running locally password can be anything 
+```sh
+    docker run --name mydatabase -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
+```
+   
+### 3. Set environment variable 
+
+    Set the correct environment variables using a `.env` file in the root folder of this project.
+
+```sh
+    echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres" > env.env
+    
+```
+
+### 4. run the 'seed.sql' on db 
+
+```sh
+    docker cp path/to/seed.sql mydatabase:/seed.sql
+```
+
+```sh
+    docker exec -it mydatabase psql -U postgres -d postgres -a -f seed.sql
+```
+
+**Remember this step!**
 
 ### Run the application
 
