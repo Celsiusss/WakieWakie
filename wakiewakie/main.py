@@ -95,7 +95,7 @@ async def checkin(cardno: int, db: DbDep) -> str:
         prev_type = CheckinType[str.upper(checkin["type"])]
         checkin_type = CheckinType.CHECKIN if prev_type == CheckinType.CHECKOUT else CheckinType.CHECKOUT
 
-    await db.execute("INSERT INTO checkins (person_id, type, time) VALUES (%s, %s, now())",
+    await db.execute("INSERT INTO checkins (person_id, type, time) VALUES (%s, %s, date_trunc('seconds', now()))",
                      (person_id, checkin_type.value))
 
     if checkin_type == CheckinType.CHECKIN:
