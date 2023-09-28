@@ -7,7 +7,6 @@ class CheckinType(Enum):
     CHECKIN = 'checkin'
     CHECKOUT = 'checkout'
 
-
 class PostPerson(BaseModel):
     name: str
     cardno: int

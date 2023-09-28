@@ -26,22 +26,21 @@ def calc_avg_times(times: list[tuple[CheckinType, datetime.datetime]]) -> dateti
     """
 
     total = datetime.timedelta(0)
-    valid_days = 1
+    valid_days = 0
     last_checkin: datetime.datetime | None = None
 
     for (t, time) in times:
         if t == CheckinType.CHECKIN:
             last_checkin = time
-
-            continue
+            #continue
         elif last_checkin == None:
             continue
         diff = time - last_checkin
         total += diff
         valid_days += 1
-
-    average = total / valid_days
-
+    
+    average = (total / valid_days)
+    
     return average
 
 def group_by(list: list, keyfn: Callable[[Any], str]) -> dict:
