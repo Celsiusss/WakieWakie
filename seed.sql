@@ -10,7 +10,7 @@ CREATE TABLE checkins (
     id      integer primary key generated always as identity,
     person_id integer,
     type    reg_type not null,
-    time    timestamp not null,
+    time    timestamp not null default date_trunc('second', now()),
 
     CONSTRAINT fk_person
         FOREIGN KEY (person_id)
