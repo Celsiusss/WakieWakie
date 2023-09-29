@@ -8,19 +8,22 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import psycopg
+from fastapi import Form
+from starlette.responses import JSONResponse
+from fastapi.responses import RedirectResponse
 
 from wakiewakie.db_dependency import DbDependency
 from wakiewakie.data_models.person import Checkin, PersonWithCheckins, PostPerson
 from wakiewakie.utils import CheckinType, calc_avg_times, format_time, group_by
 
-
-
 db_dependency = DbDependency()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await db_dependency.start()
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -45,14 +48,14 @@ async def index(request: Request, db: DbDep):
         if el["id"] not in people_checkins:
             people_checkins[el["id"]] = PersonWithCheckins()
             people_checkins[el["id"]].name = el["name"]
-        
+
         checkin = Checkin()
         checkin.type = CheckinType[str.upper(el["type"])]
         checkin.time = el["time"]
         people_checkins[el["id"]].checkins.append(checkin)
-    
+
     for person in people_checkins.values():
-        person.average_time = calc_avg_times(list(map(lambda e: (e.type, e.time) , person.checkins)))
+        person.average_time = calc_avg_times(list(map(lambda e: (e.type, e.time), person.checkins)))
 
     print(people_checkins)
 
@@ -63,12 +66,26 @@ async def index(request: Request, db: DbDep):
                      LIMIT 20;
                      """)
     recent_log = await db.fetchall()
-    return templates.TemplateResponse("index.html", {"request": request, "people": people_checkins.values(), "checkins": recent_log})
+    return templates.TemplateResponse("index.html",
+                                      {"request": request, "people": people_checkins.values(), "checkins": recent_log})
+
 
 @app.post("/person")
-async def post_person(person: PostPerson, db: DbDep):
-    await db.execute("INSERT INTO people (name, cardno) VALUES (%s, %s)", (person.name, person.cardno))
-    print(f"Inserted new person {person}")
+async def post_person(db: DbDep, persn: PostPerson):
+    try:
+        name = persn.name
+        cardno = persn.cardno
+        await db.execute("INSERT INTO people (name, cardno) VALUES (%s, %s)", (name, cardno))
+        print(f"Inserted new person {name}, {cardno}")
+        return JSONResponse(content={"success": True})
+    except Exception as e:
+        return JSONResponse(content={"success": False, "error": str(e)}, status_code=400)
+
+
+@app.get("/add_person", response_class=HTMLResponse)
+async def add_person(request: Request):
+    return templates.TemplateResponse('add_person.html', {"request": request})
+
 
 @app.post("/checkin")
 async def checkin(cardno: int, db: DbDep) -> str:
@@ -77,16 +94,16 @@ async def checkin(cardno: int, db: DbDep) -> str:
 
     if result is None:
         return "User not found"
-    
+
     person_id = result["id"]
     name = result["name"]
 
     await db.execute("""
-                     SELECT id, type, time FROM checkins
-                        WHERE person_id = %s
-                        AND time::date = now()::date
-                        ORDER BY time DESC;
-                     """,
+                 SELECT id, type, time FROM checkins
+                    WHERE person_id = %s
+                    AND time::date = now()::date
+                    ORDER BY time DESC;
+                 """,
                      (person_id,))
     checkin = await db.fetchone()
     checkin_type = CheckinType.CHECKIN
@@ -102,4 +119,3 @@ async def checkin(cardno: int, db: DbDep) -> str:
         return f"Good morning {name}"
     else:
         return f"See you tomorrow {name}"
-
