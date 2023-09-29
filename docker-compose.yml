@@ -1,13 +1,15 @@
 version: '3'
-
 services:
   db:
     image: postgres
-    container_name: mydatabase
+    restart: always
     environment:
-      POSTGRES_DB: wakiewakie
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: abc123
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
     ports:
-      - "5432:5432"
-
+      - '5432:5432'
+    volumes:
+      - ./seed.sql:/docker-entrypoint-initdb.d/seed.sql
+volumes:
+  db:
+    driver: local
