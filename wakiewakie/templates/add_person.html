@@ -1,10 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Person</title>
+    <script>
+        function submitForm(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const cardno = document.getElementById('cardno').value;
+
+            fetch('/person', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    cardno: cardno
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = '/'; // redirect to the home page
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+
+
+    </script>
 </head>
 <body>
-$END$
+<h1>Add New Person</h1>
+<form onsubmit="submitForm(event)">
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="name" required><br><br>
+    <label for="cardno">Card Number:</label><br>
+    <input type="number" id="cardno" name="cardno" required><br><br>
+    <input type="submit" value="Submit">
+</form>
 </body>
 </html>
