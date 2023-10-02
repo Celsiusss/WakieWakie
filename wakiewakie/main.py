@@ -13,6 +13,9 @@ from wakiewakie.db_dependency import DbDependency
 from wakiewakie.data_models.person import Checkin, PersonWithCheckins, PostPerson
 from wakiewakie.utils import CheckinType, calc_avg_times, format_time, group_by
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 db_dependency = DbDependency()
@@ -102,4 +105,3 @@ async def checkin(cardno: int, db: DbDep) -> str:
         return f"Good morning {name}"
     else:
         return f"See you tomorrow {name}"
-

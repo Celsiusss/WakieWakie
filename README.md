@@ -2,6 +2,16 @@
 
 A project to encourage students to wake up!
 
+- [WakieWakie](#wakiewakie)
+  - [Development Setup](#development-setup)
+    - [Local Database](#local-database)
+    - [Setting Up PostgreSQL with Docker](#setting-up-postgresql-with-docker)
+    - [Run the application](#run-the-application)
+  - [Migrations](#migrations)
+    - [Add Migration](#add-migration)
+  - [Environment Variables](#environment-variables)
+
+
 ## Development Setup
 
 Setup a virtual environment and install dependencies
@@ -16,11 +26,13 @@ $ pip install -r requirements.txt
 
 Setup a PostreSQL database to be used locally (recommend using docker).
 
-# Setting Up PostgreSQL with Docker
+Apply [migrations](#migrations)!
 
+### Setting Up PostgreSQL with Docker
+
+<details>
+<summary>Setting Up PostgreSQL with Docker</summary>
 This guide provides steps to set up a PostgreSQL database using Docker for the project.
-
-## Run docker container 
 
 run either 
 ```sh 
@@ -32,6 +44,7 @@ run either
 ```
 
 **Remember this step!**
+</details>
 
 ### Run the application
 
@@ -40,6 +53,18 @@ Now run the project locally
 ```sh
 $ uvicorn wakiewakie.main:app --reload
 ```
+
+## Migrations
+
+Use the provided script to run migrations. It uses the samme `DB_CONNECTION` environment variable as the main application.
+
+```
+$ python database.py
+```
+
+### Add Migration
+
+To add a new migration, add a file with the naming format `XXXXXX_<name>.sql` to the `migrations` directory, where `XXXXXX` is a number following the last migration number.
 
 ## Environment Variables
 

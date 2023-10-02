@@ -1,9 +1,7 @@
 import psycopg
 from psycopg.rows import dict_row
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
 DB_CONNECTION = os.getenv('DB_CONNECTION')
 
 class DbDependency:
