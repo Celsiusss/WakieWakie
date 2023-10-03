@@ -13,8 +13,8 @@ from fastapi.templating import Jinja2Templates
 import psycopg
 
 from wakiewakie.db_dependency import DbDependency
-from wakiewakie.data_models.person import Checkin, PersonWithCheckins, PostPerson
-from wakiewakie.utils import CheckinType, calc_avg_times, format_time, group_by
+from wakiewakie.data_models.person import Checkin, PersonEntry, PostPerson
+from wakiewakie.utils import CheckinType, calc_avg_times, format_time, format_timedelta, group_by
 
 
 db_dependency = DbDependency()
@@ -35,29 +35,20 @@ templates = Jinja2Templates(directory=f"{os.getcwd()}/wakiewakie/templates")
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, db: DbDep):
     await db.execute("""
-                     SELECT p.id, p.name, c.type, c.time FROM people AS p
-                     INNER JOIN checkins AS c ON c.person_id = p.id
-                     WHERE c.time > now() - INTERVAL '7 day'
-                     ORDER BY c.time ASC;
+                     SELECT p.name, AVG(c.duration) FROM people AS p
+                        INNER JOIN checkins AS c ON c.person_id = p.id
+                     WHERE EXTRACT(ISODOW FROM c.time) < 6 -- where c.time is less than saturday (mon-fri)
+                     GROUP BY p.id;
                      """)
-    people_checkin_result = await db.fetchall()
+    people: list[PersonEntry] = []
 
-    people_checkins: dict[int, PersonWithCheckins] = {}
-    for el in people_checkin_result:
-        if el["id"] not in people_checkins:
-            people_checkins[el["id"]] = PersonWithCheckins()
-            people_checkins[el["id"]].name = el["name"]
-        
-        checkin = Checkin()
-        checkin.type = CheckinType[str.upper(el["type"])]
-        checkin.time = el["time"]
-        people_checkins[el["id"]].checkins.append(checkin)
+    response = await db.fetchall()
+    for r in response:
+        person = PersonEntry()
+        person.name = r['name']
+        person.average_time = format_timedelta(r['avg'])
+        people.append(person)
     
-    for person in people_checkins.values():
-        person.average_time = calc_avg_times(list(map(lambda e: (e.type, e.time) , person.checkins)))
-
-    print(people_checkins)
-
     await db.execute("""
                      SELECT p.name, c.type, c.time FROM people AS p
                      INNER JOIN checkins AS c ON c.person_id = p.id
@@ -65,7 +56,7 @@ async def index(request: Request, db: DbDep):
                      LIMIT 20;
                      """)
     recent_log = await db.fetchall()
-    return templates.TemplateResponse("index.html", {"request": request, "people": people_checkins.values(), "checkins": recent_log})
+    return templates.TemplateResponse("index.html", {"request": request, "people": people, "checkins": recent_log})
 
 @app.post("/person")
 async def post_person(person: PostPerson, db: DbDep):
@@ -94,7 +85,7 @@ async def checkin(cardno: int, db: DbDep) -> str:
     checkin_type = CheckinType.CHECKIN
 
     if checkin != None:
-        prev_type = CheckinType[str.upper(checkin["type"])]
+        prev_type = CheckinType.from_str(checkin["type"])
         checkin_type = CheckinType.CHECKIN if prev_type == CheckinType.CHECKOUT else CheckinType.CHECKOUT
     
     if checkin_type == CheckinType.CHECKOUT:

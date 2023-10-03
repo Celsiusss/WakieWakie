@@ -8,6 +8,10 @@ from wakiewakie.data_models.person import CheckinType
 
 TZ = timezone("Europe/Oslo")
 
+def format_timedelta(delta: datetime.timedelta) -> str:
+    hours = delta.days * 24 + delta.seconds / 3600
+    return "%.1f hours" % hours
+
 def format_time(time: datetime.datetime) -> str:
     """
     Formats a datetime into a human readable string.

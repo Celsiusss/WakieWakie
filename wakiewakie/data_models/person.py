@@ -1,11 +1,15 @@
 from dataclasses import dataclass, field
 import datetime
 from enum import Enum
+from typing import Self
 from pydantic import BaseModel
 
 class CheckinType(Enum):
     CHECKIN = 'checkin'
     CHECKOUT = 'checkout'
+
+    def from_str(v: str) -> Self:
+        return CheckinType[str.upper(v)]
 
 class PostPerson(BaseModel):
     name: str
@@ -18,10 +22,8 @@ class Checkin:
     time: datetime.datetime = datetime.datetime.min
 
 @dataclass
-class PersonWithCheckins:
-    id: str = 0
+class PersonEntry:
     name: str = ""
-    checkins: list[Checkin] = field(default_factory=list) 
-    average_time = 0
+    average_time = ""
 
 
