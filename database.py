@@ -43,13 +43,16 @@ def apply_migrations(last_migr_num, conn: psycopg.Connection):
 
     migrations = dict()
 
+
     for file in files:
         try:
-            [num, name] = file.split("_")
+            [num, name] = file.split("_", 1)
             num = int(num)
             migrations[num] = file
-        except:
-            pass
+        except Exception as e:
+            print("Error in sql file", file)
+            print(e)
+            return
     
     unapplied_migrations = list(sorted(filter(lambda n: n > last_migr_num, migrations.keys())))
 
