@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import asyncio
 import os
 from contextlib import asynccontextmanager
@@ -12,10 +15,6 @@ import psycopg
 from wakiewakie.db_dependency import DbDependency
 from wakiewakie.data_models.person import Checkin, PersonWithCheckins, PostPerson
 from wakiewakie.utils import CheckinType, calc_avg_times, format_time, group_by
-
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 db_dependency = DbDependency()
@@ -97,8 +96,23 @@ async def checkin(cardno: int, db: DbDep) -> str:
     if checkin != None:
         prev_type = CheckinType[str.upper(checkin["type"])]
         checkin_type = CheckinType.CHECKIN if prev_type == CheckinType.CHECKOUT else CheckinType.CHECKOUT
-
-    await db.execute("INSERT INTO checkins (person_id, type, time) VALUES (%s, %s, date_trunc('seconds', now()))",
+    
+    if checkin_type == CheckinType.CHECKOUT:
+        # get previous checkin and add the time difference to current checkout
+        await db.execute("""
+                         INSERT INTO checkins (person_id, type, time, duration)
+                         SELECT %s, %s, now(), now() - s.time FROM
+                            (
+                                SELECT time FROM checkins
+                                WHERE person_id = %s
+                                AND type = 'checkin' 
+                                AND time::date = now()::date
+                                ORDER BY time DESC LIMIT 1
+                            ) AS s;
+                         """,
+                (person_id, checkin_type.value, person_id))
+    else:
+        await db.execute("INSERT INTO checkins (person_id, type, time) VALUES (%s, %s, date_trunc('seconds', now()))",
                      (person_id, checkin_type.value))
 
     if checkin_type == CheckinType.CHECKIN:
