@@ -61,7 +61,7 @@ async def index(request: Request, db: DbDep):
 
         # if a person has not checked in on some days, factor those days in here
         if total_count > average_count:
-            average = average - (average / total_count)
+            average = average * (average_count / total_count)
 
         days = {
             'monday': format_timedelta(r['monday']),
