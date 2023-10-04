@@ -9,6 +9,8 @@ from wakiewakie.data_models.person import CheckinType
 TZ = timezone("Europe/Oslo")
 
 def format_timedelta(delta: datetime.timedelta) -> str:
+    if delta == None:
+        return "-"
     hours = delta.days * 24 + delta.seconds / 3600
     return "%.1f hours" % hours
 

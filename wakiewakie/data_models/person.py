@@ -23,7 +23,6 @@ class Checkin:
 
 @dataclass
 class PersonEntry:
+    days: dict[str, str]
     name: str = ""
     average_time = ""
-
-

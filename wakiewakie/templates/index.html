@@ -1,13 +1,23 @@
 {% extends "_layout.html" %}
 {% block content %}
-<table>
+<table class="time-table">
     <tr>
         <th>Name</th>
-        <th>7 day average time</th>
+        <th>Monday</th>
+        <th>Tuesday</th>
+        <th>Wednesday</th>
+        <th>Thursday</th>
+        <th>Friday</th>
+        <th>Average</th>
     </tr>
     {% for person in people %}
     <tr>
         <td>{{ person.name }}</td>
+        <td>{{ person.days['monday'] }}</td>
+        <td>{{ person.days['tuesday'] }}</td>
+        <td>{{ person.days['wednesday'] }}</td>
+        <td>{{ person.days['thursday'] }}</td>
+        <td>{{ person.days['friday'] }}</td>
         <td>{{ person.average_time }}</td>
     </tr>
     {% endfor %}

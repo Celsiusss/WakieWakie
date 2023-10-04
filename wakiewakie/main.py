@@ -1,3 +1,4 @@
+import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -35,18 +36,44 @@ templates = Jinja2Templates(directory=f"{os.getcwd()}/wakiewakie/templates")
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, db: DbDep):
     await db.execute("""
-                     SELECT p.name, AVG(c.duration) FROM people AS p
-                        INNER JOIN checkins AS c ON c.person_id = p.id
-                     WHERE EXTRACT(ISODOW FROM c.time) < 6 -- where c.time is less than saturday (mon-fri)
+                     SELECT
+                        p.id, p.name,
+                        SUM(c.duration) FILTER (WHERE c.dow = 1) monday,
+                        SUM(c.duration) FILTER (WHERE c.dow = 2) tuesday,
+                        SUM(c.duration) FILTER (WHERE c.dow = 3) wednesday,
+                        SUM(c.duration) FILTER (WHERE c.dow = 4) thursday,
+                        SUM(c.duration) FILTER (WHERE c.dow = 5) friday,
+                        AVG(c.duration) average,
+                        COUNT(*) average_count,
+                        EXTRACT(ISODOW FROM now()) total_count
+                     FROM people p
+                        INNER JOIN checkin_days c ON p.id = c.person_id
+                     WHERE c.d >= DATE_TRUNC('week', current_date)              -- limit to current week only
                      GROUP BY p.id;
-                     """)
-    people: list[PersonEntry] = []
-
+                     """);
     response = await db.fetchall()
+    
+    people: list[PersonEntry] = []
     for r in response:
-        person = PersonEntry()
+        average: datetime.timedelta = r['average']
+        average_count: int = r['average_count']
+        total_count: int = int(r['total_count'])
+
+        # if a person has not checked in on some days, factor those days in here
+        if total_count > average_count:
+            average = average - (average / total_count)
+
+        days = {
+            'monday': format_timedelta(r['monday']),
+            'tuesday': format_timedelta(r['tuesday']),
+            'wednesday': format_timedelta(r['wednesday']),
+            'thursday': format_timedelta(r['thursday']),
+            'friday': format_timedelta(r['friday'])
+        }
+        person = PersonEntry(days)
         person.name = r['name']
-        person.average_time = format_timedelta(r['avg'])
+        person.average_time = format_timedelta(average)
+
         people.append(person)
     
     await db.execute("""
@@ -56,6 +83,8 @@ async def index(request: Request, db: DbDep):
                      LIMIT 20;
                      """)
     recent_log = await db.fetchall()
+    for e in recent_log:
+        e['time'] = format_time(e['time'])
     return templates.TemplateResponse("index.html", {"request": request, "people": people, "checkins": recent_log})
 
 @app.post("/person")

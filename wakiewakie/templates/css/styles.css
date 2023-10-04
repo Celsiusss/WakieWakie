@@ -1,16 +1,21 @@
 body {
-    font-family: sans-serif;
+  font-family: sans-serif;
 }
 
 .layout {
-    max-width: 800px;
-    margin: 0 auto;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.time-table th,
+.time-table td {
+  padding: 0 14px;
 }
 
 .table-checkins {
-    width: 100%;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 .table-checkins tr:first-child {
-    border-bottom: 1px solid black;
+  border-bottom: 1px solid black;
 }
